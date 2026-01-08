@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Connection, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
 
-const WALLET_ADDRESS = 'D6LFvYtYAbtgDUiqHKjUgQWiK7ziSunMAQJw7TKk7tfS';
+const WALLET_ADDRESS = '6Bv2F8FcorCPy36T2xfJJY1ppogjEMzs6Rr1NWC5pDaJ';
 const RPC_URL = 'https://api.mainnet-beta.solana.com';
 
 export async function GET() {
