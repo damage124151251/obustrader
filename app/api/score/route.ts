@@ -46,20 +46,6 @@ async function getSolPrice(): Promise<number> {
   return 180;
 }
 
-// Calculate market cap from bonding curve
-function calculateMarketCap(virtualSolReserves: number, virtualTokenReserves: number, solPrice: number): number {
-  if (!virtualSolReserves || !virtualTokenReserves) return 0;
-
-  // Pump.fun total supply is 1 billion tokens
-  const TOTAL_SUPPLY = 1_000_000_000;
-
-  // Price per token in SOL
-  const pricePerTokenSol = virtualSolReserves / virtualTokenReserves;
-
-  // Market cap in USD
-  return pricePerTokenSol * TOTAL_SUPPLY * solPrice;
-}
-
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const mint = searchParams.get('mint');
@@ -107,25 +93,17 @@ export async function GET(request: NextRequest) {
     // Calculate age in minutes
     const ageMinutes = (Date.now() - tokenData.created_timestamp) / 1000 / 60;
 
-    // ALWAYS calculate market cap from bonding curve for accuracy
-    let marketCap = calculateMarketCap(
-      tokenData.virtual_sol_reserves,
-      tokenData.virtual_token_reserves,
-      solPrice
-    );
+    // Use usd_market_cap directly from Pump.fun API (most accurate)
+    let marketCap = tokenData.usd_market_cap || 0;
 
-    // If bonding curve is complete (migrated to Raydium), use usd_market_cap from API
-    if (tokenData.complete && tokenData.usd_market_cap > 0) {
-      marketCap = tokenData.usd_market_cap;
-    }
-
-    // If still no market cap, try the market_cap field
+    // Fallback to market_cap field if usd_market_cap is not available
     if (!marketCap && tokenData.market_cap > 0) {
       marketCap = tokenData.market_cap;
     }
 
-    // Calculate liquidity from SOL reserves
-    const liquidity = (tokenData.virtual_sol_reserves || 0) * solPrice;
+    // Calculate liquidity - virtual_sol_reserves is in lamports, convert to SOL first
+    const solReservesInSol = (tokenData.virtual_sol_reserves || 0) / 1_000_000_000;
+    const liquidity = solReservesInSol * solPrice;
 
     // Estimate holders (pump.fun doesn't give exact holder count, use reply_count as proxy)
     const holders = Math.max(1, tokenData.reply_count || 1);
