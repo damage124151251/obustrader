@@ -188,19 +188,23 @@ export default function Dashboard() {
             <span className="logo-text">OBUS</span>
           </div>
 
-          {/* Token CA Card - Only show if token is configured */}
-          {botStatus?.obus_token_mint && (
-            <div className="token-ca-card">
-              <span className="token-ca-label">$OBUS CA:</span>
-              <span
-                className="token-ca-address"
-                onClick={() => copyToClipboard(botStatus.obus_token_mint || '')}
-                title="Click to copy"
-              >
-                {shortenAddress(botStatus.obus_token_mint, 6)}
-              </span>
-            </div>
-          )}
+          {/* Token CA Card */}
+          <div className="token-ca-card">
+            {botStatus?.obus_token_mint ? (
+              <>
+                <span className="token-ca-label">$OBUS CA:</span>
+                <span
+                  className="token-ca-address"
+                  onClick={() => copyToClipboard(botStatus.obus_token_mint || '')}
+                  title="Click to copy"
+                >
+                  {shortenAddress(botStatus.obus_token_mint, 6)}
+                </span>
+              </>
+            ) : (
+              <span className="token-not-launched">TOKEN NOT LAUNCHED YET</span>
+            )}
+          </div>
 
           <div className="header-nav">
             <Link href="/" className="nav-link active">Dashboard</Link>
