@@ -46,6 +46,29 @@ async function getSolPrice(): Promise<number> {
   return 180;
 }
 
+// Get token data from DexScreener (most accurate for traded tokens)
+async function getDexScreenerData(mint: string): Promise<{marketCap: number, liquidity: number, priceUsd: number} | null> {
+  try {
+    const response = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${mint}`, {
+      cache: 'no-store'
+    });
+    if (response.ok) {
+      const data = await response.json();
+      if (data.pairs && data.pairs.length > 0) {
+        const pair = data.pairs.find((p: any) => p.dexId === 'raydium') || data.pairs[0];
+        return {
+          marketCap: pair.marketCap || pair.fdv || 0,
+          liquidity: pair.liquidity?.usd || 0,
+          priceUsd: parseFloat(pair.priceUsd) || 0
+        };
+      }
+    }
+  } catch (error) {
+    // Fallback to pump.fun
+  }
+  return null;
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const mint = searchParams.get('mint');
@@ -93,17 +116,22 @@ export async function GET(request: NextRequest) {
     // Calculate age in minutes
     const ageMinutes = (Date.now() - tokenData.created_timestamp) / 1000 / 60;
 
-    // Use usd_market_cap directly from Pump.fun API (most accurate)
-    let marketCap = tokenData.usd_market_cap || 0;
+    // Try DexScreener first (most accurate for traded tokens)
+    const dexData = await getDexScreenerData(mint);
 
-    // Fallback to market_cap field if usd_market_cap is not available
-    if (!marketCap && tokenData.market_cap > 0) {
-      marketCap = tokenData.market_cap;
+    let marketCap: number;
+    let liquidity: number;
+
+    if (dexData && dexData.marketCap > 0) {
+      // Use DexScreener data (more accurate)
+      marketCap = dexData.marketCap;
+      liquidity = dexData.liquidity;
+    } else {
+      // Fallback to Pump.fun data
+      marketCap = tokenData.usd_market_cap || tokenData.market_cap || 0;
+      const solReservesInSol = (tokenData.virtual_sol_reserves || 0) / 1_000_000_000;
+      liquidity = solReservesInSol * solPrice;
     }
-
-    // Calculate liquidity - virtual_sol_reserves is in lamports, convert to SOL first
-    const solReservesInSol = (tokenData.virtual_sol_reserves || 0) / 1_000_000_000;
-    const liquidity = solReservesInSol * solPrice;
 
     // Estimate holders (pump.fun doesn't give exact holder count, use reply_count as proxy)
     const holders = Math.max(1, tokenData.reply_count || 1);

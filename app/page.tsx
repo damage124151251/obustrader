@@ -53,6 +53,7 @@ export default function Dashboard() {
   const [analyses, setAnalyses] = useState<AnalyzedToken[]>([]);
   const [distributions, setDistributions] = useState<Distribution[]>([]);
   const [botStatus, setBotStatus] = useState<BotStatus | null>(null);
+  const [walletBalance, setWalletBalance] = useState<number>(0);
   const [isConnected, setIsConnected] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -60,6 +61,15 @@ export default function Dashboard() {
   useEffect(() => {
     async function fetchData() {
       try {
+        // Fetch wallet balance
+        try {
+          const walletRes = await fetch('/api/wallet');
+          const walletData = await walletRes.json();
+          if (walletData.balance) setWalletBalance(walletData.balance);
+        } catch (e) {
+          console.error('Failed to fetch wallet balance');
+        }
+
         // Fetch bot status (to get OBUS token mint)
         const { data: statusData } = await supabase
           .from('bot_status')
@@ -204,6 +214,12 @@ export default function Dashboard() {
             ) : (
               <span className="token-not-launched">TOKEN NOT LAUNCHED YET</span>
             )}
+          </div>
+
+          {/* Wallet Balance Card */}
+          <div className="wallet-balance-card">
+            <span className="wallet-label">DEV WALLET:</span>
+            <span className="wallet-balance">{walletBalance.toFixed(4)} SOL</span>
           </div>
 
           <div className="header-nav">

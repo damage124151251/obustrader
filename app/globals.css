@@ -487,6 +487,31 @@ body {
   color: var(--obus-cyan);
 }
 
+/* Wallet Balance Card */
+.wallet-balance-card {
+  background: linear-gradient(135deg, rgba(0, 255, 65, 0.15), rgba(0, 255, 65, 0.05));
+  border: 1px solid var(--obus-green);
+  border-radius: 12px;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.wallet-label {
+  font-size: 10px;
+  color: var(--obus-green);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.wallet-balance {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  color: var(--obus-white);
+  font-weight: 600;
+}
+
 .token-not-launched {
   font-family: 'Press Start 2P', cursive;
   font-size: 9px;
