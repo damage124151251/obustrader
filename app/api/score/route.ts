@@ -34,7 +34,7 @@ interface PumpfunTokenData {
 async function getSolPrice(): Promise<number> {
   try {
     const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd', {
-      next: { revalidate: 60 } // Cache for 60 seconds
+      next: { revalidate: 60 }
     });
     if (response.ok) {
       const data = await response.json();
@@ -82,29 +82,46 @@ export async function GET(request: NextRequest) {
       headers: {
         'Accept': 'application/json',
         'User-Agent': 'OBUS-Trader/1.0'
-      }
+      },
+      cache: 'no-store'
     });
 
     if (!response.ok) {
       if (response.status === 404) {
-        return NextResponse.json({ error: 'Token not found on Pump.fun' }, { status: 404 });
+        return NextResponse.json({
+          error: 'Token not found on Pump.fun. Only Pump.fun tokens are supported.'
+        }, { status: 404 });
       }
       throw new Error(`Pump.fun API error: ${response.status}`);
     }
 
     const tokenData: PumpfunTokenData = await response.json();
 
+    // Validate this is actually a Pump.fun token (must have bonding curve)
+    if (!tokenData.bonding_curve && !tokenData.raydium_pool) {
+      return NextResponse.json({
+        error: 'This token is not from Pump.fun. Only Pump.fun tokens are supported.'
+      }, { status: 400 });
+    }
+
     // Calculate age in minutes
     const ageMinutes = (Date.now() - tokenData.created_timestamp) / 1000 / 60;
 
-    // Calculate market cap properly from bonding curve
-    let marketCap = tokenData.usd_market_cap;
-    if (!marketCap || marketCap < 100) {
-      marketCap = calculateMarketCap(
-        tokenData.virtual_sol_reserves,
-        tokenData.virtual_token_reserves,
-        solPrice
-      );
+    // ALWAYS calculate market cap from bonding curve for accuracy
+    let marketCap = calculateMarketCap(
+      tokenData.virtual_sol_reserves,
+      tokenData.virtual_token_reserves,
+      solPrice
+    );
+
+    // If bonding curve is complete (migrated to Raydium), use usd_market_cap from API
+    if (tokenData.complete && tokenData.usd_market_cap > 0) {
+      marketCap = tokenData.usd_market_cap;
+    }
+
+    // If still no market cap, try the market_cap field
+    if (!marketCap && tokenData.market_cap > 0) {
+      marketCap = tokenData.market_cap;
     }
 
     // Calculate liquidity from SOL reserves
@@ -114,7 +131,6 @@ export async function GET(request: NextRequest) {
     const holders = Math.max(1, tokenData.reply_count || 1);
 
     // Dev sold percent - we can't get this directly from pump.fun API
-    // Use bonding curve completion as a proxy
     const devSoldPercent = tokenData.complete ? 100 : 0;
 
     // Bundle percent - can't determine from pump.fun API alone
@@ -219,8 +235,8 @@ export async function GET(request: NextRequest) {
       score,
       grade,
       metrics: {
-        marketCap,
-        liquidity,
+        marketCap: Math.round(marketCap),
+        liquidity: Math.round(liquidity),
         holders,
         ageMinutes,
         devSoldPercent,
@@ -233,7 +249,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Error analyzing token:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to analyze token' },
+      { error: error.message || 'Failed to analyze token. Make sure this is a Pump.fun token.' },
       { status: 500 }
     );
   }
