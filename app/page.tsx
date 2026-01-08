@@ -231,7 +231,7 @@ export default function Dashboard() {
               {isConnected ? 'LIVE' : 'OFFLINE'}
             </span>
             <a
-              href="https://x.com"
+              href="https://x.com/ObusTrader"
               target="_blank"
               rel="noopener noreferrer"
               className="x-button"
@@ -302,60 +302,24 @@ export default function Dashboard() {
                 {analyses.slice(0, 5).map((analysis) => (
                   <div key={analysis.id} className="inner-card fade-in">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        {/* Token Image */}
-                        {analysis.image_url ? (
-                          <img
-                            src={analysis.image_url}
-                            alt={analysis.symbol}
-                            style={{
-                              width: '36px',
-                              height: '36px',
-                              borderRadius: '50%',
-                              objectFit: 'cover',
-                              border: '2px solid var(--obus-gray-dark)'
-                            }}
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = 'none';
-                            }}
-                          />
-                        ) : (
-                          <div style={{
-                            width: '36px',
-                            height: '36px',
-                            borderRadius: '50%',
-                            background: 'var(--obus-gray-dark)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '14px',
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <a
+                          href={`https://pump.fun/coin/${analysis.mint_address}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
                             fontWeight: 600,
-                            color: 'var(--obus-gray)'
-                          }}>
-                            {analysis.symbol?.charAt(0) || '?'}
-                          </div>
-                        )}
-                        <div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <a
-                              href={`https://pump.fun/coin/${analysis.mint_address}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              style={{
-                                fontWeight: 600,
-                                color: 'var(--obus-white)',
-                                fontSize: '14px',
-                                textDecoration: 'none'
-                              }}
-                              className="token-link"
-                            >
-                              {analysis.symbol}
-                            </a>
-                            <span className={`badge badge-${analysis.ai_sentiment?.toLowerCase()}`}>
-                              {analysis.ai_sentiment}
-                            </span>
-                          </div>
-                        </div>
+                            color: 'var(--obus-white)',
+                            fontSize: '14px',
+                            textDecoration: 'none'
+                          }}
+                          className="token-link"
+                        >
+                          {analysis.symbol}
+                        </a>
+                        <span className={`badge badge-${analysis.ai_sentiment?.toLowerCase()}`}>
+                          {analysis.ai_sentiment}
+                        </span>
                       </div>
                       <span style={{
                         fontSize: '12px',
