@@ -355,9 +355,6 @@ export default function Dashboard() {
                               {analysis.ai_sentiment}
                             </span>
                           </div>
-                          <div style={{ fontSize: '11px', color: 'var(--obus-gray)' }}>
-                            MCap: ${analysis.market_cap_usd?.toLocaleString() || 0}
-                          </div>
                         </div>
                       </div>
                       <span style={{
