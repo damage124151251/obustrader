@@ -30,6 +30,36 @@ interface PumpfunTokenData {
   usd_market_cap: number;
 }
 
+// Get current SOL price from CoinGecko
+async function getSolPrice(): Promise<number> {
+  try {
+    const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd', {
+      next: { revalidate: 60 } // Cache for 60 seconds
+    });
+    if (response.ok) {
+      const data = await response.json();
+      return data.solana?.usd || 180;
+    }
+  } catch (error) {
+    // Fallback
+  }
+  return 180;
+}
+
+// Calculate market cap from bonding curve
+function calculateMarketCap(virtualSolReserves: number, virtualTokenReserves: number, solPrice: number): number {
+  if (!virtualSolReserves || !virtualTokenReserves) return 0;
+
+  // Pump.fun total supply is 1 billion tokens
+  const TOTAL_SUPPLY = 1_000_000_000;
+
+  // Price per token in SOL
+  const pricePerTokenSol = virtualSolReserves / virtualTokenReserves;
+
+  // Market cap in USD
+  return pricePerTokenSol * TOTAL_SUPPLY * solPrice;
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const mint = searchParams.get('mint');
@@ -44,6 +74,9 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    // Get current SOL price
+    const solPrice = await getSolPrice();
+
     // Fetch token data from Pump.fun API
     const response = await fetch(`https://frontend-api.pump.fun/coins/${mint}`, {
       headers: {
@@ -64,9 +97,18 @@ export async function GET(request: NextRequest) {
     // Calculate age in minutes
     const ageMinutes = (Date.now() - tokenData.created_timestamp) / 1000 / 60;
 
-    // Calculate metrics
-    const marketCap = tokenData.usd_market_cap || 0;
-    const liquidity = (tokenData.virtual_sol_reserves || 0) * 200; // Approximate SOL price
+    // Calculate market cap properly from bonding curve
+    let marketCap = tokenData.usd_market_cap;
+    if (!marketCap || marketCap < 100) {
+      marketCap = calculateMarketCap(
+        tokenData.virtual_sol_reserves,
+        tokenData.virtual_token_reserves,
+        solPrice
+      );
+    }
+
+    // Calculate liquidity from SOL reserves
+    const liquidity = (tokenData.virtual_sol_reserves || 0) * solPrice;
 
     // Estimate holders (pump.fun doesn't give exact holder count, use reply_count as proxy)
     const holders = Math.max(1, tokenData.reply_count || 1);
