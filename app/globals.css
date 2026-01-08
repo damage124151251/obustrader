@@ -13,6 +13,7 @@
   --obus-cyan: #00FFFF;
   --obus-white: #E8E8E8;
   --obus-gray: #888888;
+  --obus-gray-dark: #333333;
   --card-radius: 16px;
   --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
   --card-shadow-hover: 0 12px 48px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.4);
@@ -547,6 +548,14 @@ body {
 
 .token-address:hover {
   text-decoration: underline;
+}
+
+.token-link {
+  transition: color 0.2s ease;
+}
+
+.token-link:hover {
+  color: var(--obus-yellow) !important;
 }
 
 /* Footer */

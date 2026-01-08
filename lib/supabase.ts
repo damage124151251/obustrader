@@ -36,6 +36,7 @@ export interface AnalyzedToken {
   ai_reasoning: string;
   ai_metrics: Record<string, any>;
   was_bought: boolean;
+  image_url: string | null;
   created_at: string;
 }
 

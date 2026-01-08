@@ -281,13 +281,63 @@ export default function Dashboard() {
                 {analyses.slice(0, 5).map((analysis) => (
                   <div key={analysis.id} className="inner-card fade-in">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span style={{ fontWeight: 600, color: 'var(--obus-white)', fontSize: '14px' }}>
-                          {analysis.symbol}
-                        </span>
-                        <span className={`badge badge-${analysis.ai_sentiment?.toLowerCase()}`}>
-                          {analysis.ai_sentiment}
-                        </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        {/* Token Image */}
+                        {analysis.image_url ? (
+                          <img
+                            src={analysis.image_url}
+                            alt={analysis.symbol}
+                            style={{
+                              width: '36px',
+                              height: '36px',
+                              borderRadius: '50%',
+                              objectFit: 'cover',
+                              border: '2px solid var(--obus-gray-dark)'
+                            }}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <div style={{
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: '50%',
+                            background: 'var(--obus-gray-dark)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '14px',
+                            fontWeight: 600,
+                            color: 'var(--obus-gray)'
+                          }}>
+                            {analysis.symbol?.charAt(0) || '?'}
+                          </div>
+                        )}
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <a
+                              href={`https://pump.fun/coin/${analysis.mint_address}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                fontWeight: 600,
+                                color: 'var(--obus-white)',
+                                fontSize: '14px',
+                                textDecoration: 'none'
+                              }}
+                              className="token-link"
+                            >
+                              {analysis.symbol}
+                            </a>
+                            <span className={`badge badge-${analysis.ai_sentiment?.toLowerCase()}`}>
+                              {analysis.ai_sentiment}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '11px', color: 'var(--obus-gray)' }}>
+                            MCap: ${analysis.market_cap_usd?.toLocaleString() || 0}
+                          </div>
+                        </div>
                       </div>
                       <span style={{
                         fontSize: '12px',
@@ -300,9 +350,19 @@ export default function Dashboard() {
                     <div style={{ fontSize: '12px', color: 'var(--obus-gray)', marginBottom: '10px', lineHeight: '1.5' }}>
                       {analysis.ai_reasoning}
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px' }}>
                       <span style={{ color: 'var(--obus-gray)' }}>Confidence: {analysis.ai_confidence}%</span>
-                      <span style={{ color: 'var(--obus-gray)' }}>{timeAgo(analysis.created_at)}</span>
+                      <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                        <a
+                          href={`https://pump.fun/coin/${analysis.mint_address}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ color: 'var(--obus-cyan)', textDecoration: 'none', fontSize: '11px' }}
+                        >
+                          View on Pump.fun
+                        </a>
+                        <span style={{ color: 'var(--obus-gray)' }}>{timeAgo(analysis.created_at)}</span>
+                      </div>
                     </div>
                   </div>
                 ))}
