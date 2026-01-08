@@ -32,6 +32,7 @@ export default function DocsPage() {
 
           <div className="header-nav">
             <Link href="/" className="nav-link">Dashboard</Link>
+            <Link href="/score" className="nav-link">Score</Link>
             <Link href="/docs" className="nav-link active">Docs</Link>
             <a
               href="https://x.com"

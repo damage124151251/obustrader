@@ -208,6 +208,7 @@ export default function Dashboard() {
 
           <div className="header-nav">
             <Link href="/" className="nav-link active">Dashboard</Link>
+            <Link href="/score" className="nav-link">Score</Link>
             <Link href="/docs" className="nav-link">Docs</Link>
             <span className="badge badge-live">
               <span className={`led ${isConnected ? 'led-green' : 'led-red'}`} />
